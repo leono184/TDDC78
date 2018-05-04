@@ -12,10 +12,10 @@
 
 int main (int argc, char ** argv) {
 
-	if (argc != 4) {
+	/*if (argc != 4) {
 		fprintf(stderr, "Usage: %s radius infile outfile\n", argv[0]);
 		return -1;
-	}
+	}*/
 
 	#define MAX_RAD 3000
 	int radius;
