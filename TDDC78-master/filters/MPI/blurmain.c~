@@ -6,7 +6,7 @@
 #include "ppmio.h"
 #include "blurfilter.h"
 #include "gaussw.h"
-#include "mpi.h"
+#include <mpi.h>
 #include "transpose.h"
 
 
@@ -23,7 +23,6 @@ int main (int argc, char ** argv) {
    	pixel *src = (pixel*) malloc(sizeof(pixel) * MAX_PIXELS);
 	pixel *transpose = (pixel*) malloc(sizeof(pixel) * MAX_PIXELS);	
     double w[MAX_RAD];
-    struct timespec stime, etime;
  
 	radius = atoi(argv[1]);
 	if((radius > MAX_RAD) || (radius < 1)) {
@@ -31,6 +30,7 @@ int main (int argc, char ** argv) {
 		return -1;
 	}
 
+	starttime = MPI_Wtime();
 
     int p;   // number of started MPI processes
     int me;  // my rank 
@@ -42,6 +42,9 @@ int main (int argc, char ** argv) {
 
   	MPI_Comm_size( MPI_COMM_WORLD, &p );
     MPI_Comm_rank( MPI_COMM_WORLD, &me );
+
+	double starttime, endtime;
+	starttime = MPI_Wtime();
 
 	/* Create custom MPI datatype */
     MPI_Datatype ptype;
@@ -78,8 +81,6 @@ int main (int argc, char ** argv) {
 		    return -1;
 		}
 
-		clock_gettime(CLOCK_REALTIME, &stime);
-
 		// partition image 
 		int partion = (ysize/p)*xsize; // number of rows in each partition
 		int rest = ysize % p; // remaining number of rows
@@ -102,7 +103,7 @@ int main (int argc, char ** argv) {
 	MPI_Bcast(sendcount, p, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(displs, p, MPI_INT, 0, MPI_COMM_WORLD);
 
-    printf(" %d recieved xsixe: %d ,ysize: %d,sendcount: %d,displs: %d, radius: %d \n", me,xsize,ysize,sendcount[me], displs[me], radius);
+  //  printf(" %d recieved xsixe: %d ,ysize: %d,sendcount: %d,displs: %d, radius: %d \n", me,xsize,ysize,sendcount[me], displs[me], radius);
 
 	pixel *rbuff = (pixel*) malloc(sizeof(pixel) * (sendcount[me]));  
 	/*Scatter image*/
@@ -144,13 +145,8 @@ int main (int argc, char ** argv) {
 	MPI_Gatherv(rbuff,sendcount[me],ptype,transpose,sendcount,displs,ptype,0,MPI_COMM_WORLD);
 
 	if(me==0){
-		
+
 		transpose_array(transpose,src,xsize,ysize);
-
-		clock_gettime(CLOCK_REALTIME, &etime);
-
-		printf("Filtering took: %g secs\n", (etime.tv_sec  - stime.tv_sec) +
-		   1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
 
 		/* write result */
 		printf("Writing output file\n");
@@ -160,7 +156,9 @@ int main (int argc, char ** argv) {
 		}
 		
 	}
+	endtime = MPI_Wtime();
 
+	printf("That took %f seconds on id:%d\n", endtime-starttime, me 		);
 
 	MPI_Finalize();
     return(0);

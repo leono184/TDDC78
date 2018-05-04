@@ -1,13 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <mpi.h>
 #include <time.h>
 #include "ppmio.h"
 #include "thresfilter.h"
-#include "mpi.h"
+
 
 int main (int argc, char ** argv) {
-
 
     /* Take care of the arguments */
 
@@ -20,7 +20,6 @@ int main (int argc, char ** argv) {
     pixel *src = (pixel*) malloc(sizeof(pixel) * MAX_PIXELS);
     struct timespec stime, etime;
 
- 
     int p;   // number of started MPI processes
     int me;  // my rank 
 	pixel item;
@@ -32,6 +31,8 @@ int main (int argc, char ** argv) {
   	MPI_Comm_size( MPI_COMM_WORLD, &p );
     MPI_Comm_rank( MPI_COMM_WORLD, &me );
 
+	double starttime, endtime;
+	starttime = MPI_Wtime();
 
     MPI_Datatype ptype;
 
@@ -51,7 +52,7 @@ int main (int argc, char ** argv) {
 	MPI_Type_struct(3,block_lengths,displ,block_types,&ptype);
 	MPI_Type_commit (&ptype);
 
-  
+
 	int displs[p];	
 	int sendcount[p];
 	int *filtersums = (int *)malloc(p*sizeof(int)); 
@@ -64,8 +65,6 @@ int main (int argc, char ** argv) {
 		if(read_ppm (argv[1], &xsize, &ysize, &colmax, (char *) src) != 0){
 		    return -1;
 		}
-
-		clock_gettime(CLOCK_REALTIME, &stime);
 
 		// partition image 
 		int partion = (ysize/p)*xsize; // number of rows in each partition
@@ -88,7 +87,7 @@ int main (int argc, char ** argv) {
 	MPI_Bcast(sendcount, p, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(displs, p, MPI_INT, 0, MPI_COMM_WORLD);
 
-    printf(" %d recieved xsixe: %d ,ysize: %d,sendcount: %d,displs: %d\n", me,xsize,ysize,sendcount[me], displs[me]);
+ //   printf(" %d recieved xsixe: %d ,ysize: %d,sendcount: %d,displs: %d\n", me,xsize,ysize,sendcount[me], displs[me]);
 
 	pixel *rbuff = (pixel*) malloc(sizeof(pixel) * (sendcount[me]));  
 	/*Scatter image*/
@@ -106,10 +105,10 @@ int main (int argc, char ** argv) {
 		long int totalsum=0;
 		for(i=0;i<p;i++){
 			totalsum+=filtersums[i];
-			printf("Filtersum[%d]= %d \n",i ,filtersums[i]);
+		//	printf("Filtersum[%d]= %d \n",i ,filtersums[i]);
 		}
 		sum=totalsum/(xsize*ysize);
-		printf("sum= %d \n",sum);
+	//	printf("sum= %d \n",sum);
 	}
 	MPI_Bcast(&sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -118,10 +117,6 @@ int main (int argc, char ** argv) {
 	MPI_Gatherv(rbuff,sendcount[me],ptype,src,sendcount,displs,ptype,0,MPI_COMM_WORLD);
 
 	if(me==0){
-		clock_gettime(CLOCK_REALTIME, &etime);
-
-		printf("Filtering took: %g secs\n", (etime.tv_sec  - stime.tv_sec) +
-		   1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
 
 		/* write result */
 		printf("Writing output file\n");
@@ -130,6 +125,9 @@ int main (int argc, char ** argv) {
 		  return -1;
 		}
 	}
+	endtime = MPI_Wtime();
+
+	printf("That took %f seconds on id:%d\n", endtime-starttime, myid 		);
 	MPI_Finalize();
 
     return(0);
