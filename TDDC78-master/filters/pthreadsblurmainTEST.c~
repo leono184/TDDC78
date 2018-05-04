@@ -7,7 +7,7 @@
 #include "blurfilter.h"
 #include "gaussw.h"
 #include "pthread.h"
-#include "transpose.h"
+
 
 
 //Transpose sker parallellt i en ny funktion.
@@ -20,7 +20,7 @@ typedef struct _arg_struct{
 	int ysize;
 	int yrows;
 	pixel *src;
-	pixel *transpose;
+	pixel *buffer;
 	int radius;
 	double *w;
 } arg_struct;
@@ -31,6 +31,7 @@ void *myThreadFun(void *args){
 	arg_struct *data = (arg_struct *)args;
 
 	pixel *src = data->src;
+	pixel *buffer = data->buffer;
 	
 	int displs  = data->displs;
 	int xsize = data->xsize;
@@ -44,33 +45,10 @@ void *myThreadFun(void *args){
 	printf("Displs: %d , xsize: %d, ysize: %d, radius: %d \n",displs,xsize,yrows,radius);
 
 
-	pblurfilter(xsize,yrows, src, radius, w, displs/xsize);
-
+	ptblurfilterX(xsize,yrows, src,buffer, radius, w, displs/xsize);
+   	pthread_barrier_wait(&barr);
+	ptblurfilterY(xsize,yrows, buffer,src, radius, w, displs/xsize);
 }
-void *myThreadFunTranspose(void *args){
-	
-	arg_struct *data = (arg_struct *)args;
-
-	pixel *src = data->src;
-	pixel *transpose = data->transpose;
-	
-	int displs  = data->displs;
-	int xsize = data->xsize;
-	int ysize = data->ysize;
-	int yrows = data->yrows;
-
-
-	int j,i;
-	int startindex=	displs/xsize;
-	printf("startindex: %d , xsize: %d, yrows: %d \n",startindex,xsize,yrows);
-	for(i = startindex; i<startindex+yrows;i++){
-		for(j=0;j<xsize;j++){
-			transpose[j*ysize + i]=src[j + i*xsize];		
-		}
-	}
-}
-
-
 
 
 int main (int argc, char ** argv) {
@@ -84,11 +62,12 @@ int main (int argc, char ** argv) {
 	int radius;
     int xsize, ysize, colmax;
    	pixel *src = (pixel*) malloc(sizeof(pixel) * MAX_PIXELS);
-	pixel *transpose = (pixel*) malloc(sizeof(pixel) * MAX_PIXELS);	
+	pixel *buffer = (pixel*) malloc(sizeof(pixel) * MAX_PIXELS);	
     double w[MAX_RAD];
     struct timespec stime, etime;
 	int p = atoi(argv[1]);
- 
+    pthread_barrier_init(&barr, NULL, p); 
+
 	radius = atoi(argv[2]);
 	if((radius > MAX_RAD) || (radius < 1)) {
 		fprintf(stderr, "Radius (%d) must be greater than zero and less then %d\n", radius, MAX_RAD);
@@ -130,6 +109,7 @@ int main (int argc, char ** argv) {
 
 	for(i=0;i<p;i++){
 		data[i].src=src;
+		data[i].buffer=buffer;
 		data[i].radius = radius;
 		data[i].w = w;
 		data[i].xsize = xsize;
@@ -138,59 +118,6 @@ int main (int argc, char ** argv) {
 		data[i].displs = displs[i];
 		
 		pthread_create(&tid[i], NULL, myThreadFun, (void *)&data[i]);
-	}
-
-	
-	for(i =0 ;i<p;i++){
-		pthread_join(tid[i],NULL);
-	}
-
-	for(i=0;i<p;i++){
-		data[i].src=src;
-		data[i].transpose=transpose;
-		
-		pthread_create(&tid[i], NULL, myThreadFunTranspose, (void *)&data[i]);
-	}
-
-	
-	for(i =0 ;i<p;i++){
-		pthread_join(tid[i],NULL);
-	}
-	
-
-	partion = (xsize/p)*ysize; // number of rows in each partition
-	rest = xsize % p; // remaining number of rows
-	offset = 0;
-
-	/* calculate partition size and offset */
-	for(i = 0; i<p; i++){ 
-		displs[i]=offset;
-		if(i<rest)
-			sendcount[i] = partion+ysize;
-		else
-			sendcount[i] =partion;	
-		offset += sendcount[i];	
-	}
-	
-
-	for(i=0;i<p;i++){
-		data[i].src=transpose;
-		data[i].xsize = ysize;
-		data[i].ysize = xsize;
-		data[i].yrows = sendcount[i]/ysize;
-		data[i].displs = displs[i];
-		
-		pthread_create(&tid[i], NULL, myThreadFun, (void *)&data[i]);
-	}
-
-	for(i =0 ;i<p;i++){
-		pthread_join(tid[i],NULL);
-	}
-
-	for(i=0;i<p;i++){
-		data[i].src=transpose;
-		data[i].transpose=src;
-		pthread_create(&tid[i], NULL, myThreadFunTranspose, (void *)&data[i]);
 	}
 
 	

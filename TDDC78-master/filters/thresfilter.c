@@ -74,3 +74,22 @@ void filter(const int xsize, const int ysize, pixel* src, const int sum){
     }
   }
 }
+
+void pthreadsfilter(const int xsize, const int ysize, pixel* src, const int sum, const int startindex){
+#define uint unsigned  int 
+
+  uint i, psum, nump;
+	
+
+  nump = xsize * ysize;
+
+  for(i = startindex; i < nump+startindex; i++) {
+    psum = (uint)src[i].r + (uint)src[i].g + (uint)src[i].b;
+    if(sum > psum) {
+      src[i].r = src[i].g = src[i].b = 0;
+    }
+    else {
+      src[i].r = src[i].g = src[i].b = 255;
+    }
+  }
+}

@@ -1,0 +1,10 @@
+CFLAGS= -Nmpi
+
+LFLAGS= -lm
+
+all: blurfilter tresh
+
+mpiblurfilter: blurmain.c blurfilter.c ppmio.c gaussw.c transpose.c
+	$(CC) $(CFLAGS) blurmain.c blurfilter.c ppmio.c gaussw.c transpose.c -o mpiblurfilter
+
+

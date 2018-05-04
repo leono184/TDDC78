@@ -19,7 +19,7 @@ int main (int argc, char ** argv) {
     int xsize, ysize, colmax;
     pixel *src = (pixel*) malloc(sizeof(pixel) * MAX_PIXELS);
     struct timespec stime, etime;
-//----------------------------------------------------------------------------
+
  
     int p;   // number of started MPI processes
     int me;  // my rank 
@@ -109,14 +109,13 @@ int main (int argc, char ** argv) {
 			printf("Filtersum[%d]= %d \n",i ,filtersums[i]);
 		}
 		sum=totalsum/(xsize*ysize);
+		printf("sum= %d \n",sum);
 	}
 	MPI_Bcast(&sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	filter(xsize,sendcount[me]/xsize,rbuff,sum);
 
 	MPI_Gatherv(rbuff,sendcount[me],ptype,src,sendcount,displs,ptype,0,MPI_COMM_WORLD);
-//-----------------------------------------------------------------------
-
 
 	if(me==0){
 		clock_gettime(CLOCK_REALTIME, &etime);

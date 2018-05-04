@@ -109,6 +109,7 @@ int main (int argc, char ** argv) {
 			printf("Filtersum[%d]= %d \n",i ,filtersums[i]);
 		}
 		sum=totalsum/(xsize*ysize);
+		printf("sum= %d \n",sum);
 	}
 	MPI_Bcast(&sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
 

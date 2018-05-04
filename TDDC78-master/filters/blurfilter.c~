@@ -85,15 +85,13 @@ void blurfilter(const int xsize, const int ysize, pixel* src, const int radius, 
   }*/
 
 }
-void pblurfilter(const int xsize, const int ysize, pixel* src, const int radius, const double *w, const int startindex){
+
+void ptblurfilterX(const int xsize, const int ysize, pixel* src, pixel* buffer,const int radius, const double *w, const int startindex){
   int x,y,x2,y2, wi;
   double r,g,b,n, wc;
 
-
-
-  for (y=startindex; y<startindex+ysize; y++) { // vertical direction/*
+  for (y=startindex; y<ysize+startindex; y++) { // vertical direction
     for (x=0; x<xsize; x++) { // horizontal direction
- 
       r = w[0] * pix(src, x, y, xsize)->r; // copy values from src img
       g = w[0] * pix(src, x, y, xsize)->g;
       b = w[0] * pix(src, x, y, xsize)->b;
@@ -115,13 +113,48 @@ void pblurfilter(const int xsize, const int ysize, pixel* src, const int radius,
 	  n += wc;
 	}
       }
-      pix(src,x,y, xsize)->r = r/n;
-      pix(src,x,y, xsize)->g = g/n;
-      pix(src,x,y, xsize)->b = b/n;
+      pix(buffer,x,y, xsize)->r = r/n;
+      pix(buffer,x,y, xsize)->g = g/n;
+      pix(buffer,x,y, xsize)->b = b/n;
 
     }
 
   }
 }
+
+
+void ptblurfilterY(const int xsize, const int ysize, pixel* src, pixel* buffer,const int radius, const double *w, const int startindex){
+  int x,y,x2,y2, wi;
+  double r,g,b,n, wc;
+
+  for (y=startindex; y<ysize+startindex; y++) {
+    for (x=0; x<xsize; x++) {
+      r = w[0] * pix(src, x, y, xsize)->r;
+      g = w[0] * pix(src, x, y, xsize)->g;
+      b = w[0] * pix(src, x, y, xsize)->b;
+      n = w[0];
+      for ( wi=1; wi <= radius; wi++) {
+	wc = w[wi];
+	y2 = y - wi;
+	if(y2 >= 0) {
+	  r += wc * pix(src, x, y2, xsize)->r;
+	  g += wc * pix(src, x, y2, xsize)->g;
+	  b += wc * pix(src, x, y2, xsize)->b;
+	  n += wc;
+	}
+	y2 = y + wi;
+	if(y2 < ysize) {
+	  r += wc * pix(src, x, y2, xsize)->r;
+	  g += wc * pix(src, x, y2, xsize)->g;
+	  b += wc * pix(src, x, y2, xsize)->b;
+	  n += wc;
+	}
+      }
+      pix(buffer,x,y, xsize)->r = r/n;
+      pix(buffer,x,y, xsize)->g = g/n;
+      pix(buffer,x,y, xsize)->b = b/n;
+    }
+  }
+
 
 
