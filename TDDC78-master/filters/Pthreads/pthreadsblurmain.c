@@ -43,7 +43,7 @@ void *myThreadFun(void *args){
 
 
 
-	printf("Displs: %d , xsize: %d, ysize: %d, radius: %d \n",displs,xsize,yrows,radius);
+	//printf("Displs: %d , xsize: %d, ysize: %d, radius: %d \n",displs,xsize,yrows,radius);
 
 
 	ptblurfilterX(xsize,yrows, src,buffer, radius, w, displs/xsize);
@@ -53,11 +53,11 @@ void *myThreadFun(void *args){
 
 
 int main (int argc, char ** argv) {
-
+/*
 	if (argc != 5) {
 		fprintf(stderr, "Usage: %s threads radius infile outfile\n", argv[0]);
 		return -1;
-	}
+	}*/
 
 	#define MAX_RAD 3000
 	int radius;
@@ -133,10 +133,11 @@ int main (int argc, char ** argv) {
 	   1e-9*(etime.tv_nsec  - stime.tv_nsec)) ;
 
 	/* write result */
+/*
 	printf("Writing output file\n");
 	if(write_ppm (argv[4], xsize, ysize, (char *)src) != 0){
 		return -1;
 	}
-
+*/
     return(0);
 }
