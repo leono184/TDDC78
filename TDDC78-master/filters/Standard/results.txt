@@ -1,0 +1,35 @@
+leono184@parlomba3:Standard$ tresh.out ../images/im4.ppm 4.ppm
+Has read the image, calling filter
+Filtering took: 0.146508 secs
+Writing output file
+leono184@parlomba3:Standard$ tresh.out ../images/im1.ppm 1.ppm
+Has read the image, calling filter
+Filtering took: 0.0100344 secs
+Writing output file
+
+
+leono184@parlomba3:Standard$ blur.out 10 ../images/im1.ppm 1.ppmHas read the image, generating coefficients
+Calling filter
+Filtering took: 0.467799 secs
+Writing output file
+leono184@parlomba3:Standard$ blur.out 20 ../images/im1.ppm 1.ppm
+Has read the image, generating coefficients
+Calling filter
+Filtering took: 0.860397 secs
+Writing output file
+leono184@parlomba3:Standard$ blur.out 30 ../images/im1.ppm 1.ppm
+Has read the image, generating coefficients
+Calling filter
+Filtering took: 1.25431 secs
+Writing output file
+leono184@parlomba3:Standard$ blur.out 40 ../images/im1.ppm 1.ppm
+Has read the image, generating coefficients
+Calling filter
+Filtering took: 1.43515 secs
+Writing output file
+leono184@parlomba3:Standard$ blur.out 50 ../images/im1.ppm 1.ppm
+Has read the image, generating coefficients
+Calling filter
+Filtering took: 1.73382 secs
+Writing output file
+
