@@ -1,8 +1,6 @@
 $#!/bin/sh
 set -e
 
-$ ssh -X x_anste@triolith.nsc.liu.se
-
 $ module load buildenv-intel/2015-1
 
 $ make 
@@ -18,7 +16,7 @@ for n in 0:4; do
 	$#SBATCH -o thres_out$n
 	$#SBATCH -e thres_err$n
 	
-	mpprun thres
+	salloc mpprun thres
 done
 
 
