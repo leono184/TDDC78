@@ -10,12 +10,12 @@
 int main (int argc, char ** argv) {
 
     /* Take care of the arguments */
-
+/*
     if (argc != 3) {
 	fprintf(stderr, "Usage: %s infile outfile\n", argv[0]);
 	return -1;
     }
-
+*/
     int xsize, ysize, colmax;
     pixel *src = (pixel*) malloc(sizeof(pixel) * MAX_PIXELS);
     struct timespec stime, etime;
@@ -30,6 +30,16 @@ int main (int argc, char ** argv) {
 
   	MPI_Comm_size( MPI_COMM_WORLD, &p );
     MPI_Comm_rank( MPI_COMM_WORLD, &me );
+
+	if( me == 0 ){
+
+		  /* Take care of the arguments */
+
+			/* read file */
+			if(read_ppm (argv[2], &xsize, &ysize, &colmax, (char *) src) != 0){
+				return -1;
+			}
+	}
 
 	double starttime, endtime;
 	starttime = MPI_Wtime();
@@ -61,10 +71,10 @@ int main (int argc, char ** argv) {
 
 	  /* Take care of the arguments */
 
-		/* read file */
+		/* read file *//*
 		if(read_ppm (argv[1], &xsize, &ysize, &colmax, (char *) src) != 0){
 		    return -1;
-		}
+		}*/
 
 		// partition image 
 		int partion = (ysize/p)*xsize; // number of rows in each partition
@@ -117,17 +127,18 @@ int main (int argc, char ** argv) {
 	MPI_Gatherv(rbuff,sendcount[me],ptype,src,sendcount,displs,ptype,0,MPI_COMM_WORLD);
 
 	if(me==0){
+		endtime = MPI_Wtime();
+
+		printf("That took %f seconds on id:%d\n", endtime-starttime, me 		);
 
 		/* write result */
 		printf("Writing output file\n");
-		
+		/*
 		if(write_ppm (argv[2], xsize, ysize, (char *)src) != 0){
 		  return -1;
-		}
+		}*/
 	}
-	endtime = MPI_Wtime();
 
-	printf("That took %f seconds on id:%d\n", endtime-starttime, me 		);
 	MPI_Finalize();
 
     return(0);
