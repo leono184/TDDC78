@@ -1,0 +1,130 @@
+Blur radius 10, im1.ppm
+
+mpprun info: Starting impi run on 1 node ( 1 rank X 1 th ) for job ID 18662798
+That took 0.075280 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.611411
+mpprun info: Starting impi run on 1 node ( 2 rank X 1 th ) for job ID 18662805
+That took 0.039870 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:08.385491
+mpprun info: Starting impi run on 1 node ( 4 rank X 1 th ) for job ID 18662827
+That took 0.023325 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.820062
+mpprun info: Starting impi run on 1 node ( 8 rank X 1 th ) for job ID 18662831
+That took 0.015035 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.362818
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18662834
+That took 0.011042 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:03.786192
+mpprun info: Starting impi run on 2 node ( 32 rank X 1 th ) for job ID 18662837
+That took 0.007868 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:02.356050
+
+Blur radius 10, im4.ppm
+
+mpprun info: Starting impi run on 1 node ( 1 rank X 1 th ) for job ID 18662847
+That took 1.438783 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:04.125325
+mpprun info: Starting impi run on 1 node ( 2 rank X 1 th ) for job ID 18662849
+That took 0.833833 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.685329
+mpprun info: Starting impi run on 1 node ( 4 rank X 1 th ) for job ID 18662851
+That took 0.529417 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:02.061909
+mpprun info: Starting impi run on 1 node ( 8 rank X 1 th ) for job ID 18662853
+That took 0.388572 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.940636
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18662863
+That took 0.347569 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:05.607763
+mpprun info: Starting impi run on 2 node ( 32 rank X 1 th ) for job ID 18662874
+That took 0.266864 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:06.598542
+
+Threshold, im1.ppm
+
+mpprun info: Starting impi run on 1 node ( 1 rank X 1 th ) for job ID 18662898
+That took 0.002750 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.449873
+mpprun info: Starting impi run on 1 node ( 2 rank X 1 th ) for job ID 18662911
+That took 0.002198 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.606245
+mpprun info: Starting impi run on 1 node ( 4 rank X 1 th ) for job ID 18662913
+That took 0.001870 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.927465
+mpprun info: Starting impi run on 1 node ( 8 rank X 1 th ) for job ID 18662914
+That took 0.002329 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.769590
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18662915
+That took 0.002957 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.504177
+mpprun info: Starting impi run on 2 node ( 32 rank X 1 th ) for job ID 18662916
+That took 0.005644 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.066130
+
+Threshold, im4.ppm
+
+mpprun info: Starting impi run on 1 node ( 1 rank X 1 th ) for job ID 18662920
+That took 0.051714 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:02.123560
+mpprun info: Starting impi run on 1 node ( 2 rank X 1 th ) for job ID 18662928
+That took 0.034824 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.915369
+mpprun info: Starting impi run on 1 node ( 4 rank X 1 th ) for job ID 18662933
+That took 0.026839 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.571129
+mpprun info: Starting impi run on 1 node ( 8 rank X 1 th ) for job ID 18662934
+That took 0.024390 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:07.098924
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18662937
+That took 0.025038 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.336569
+mpprun info: Starting impi run on 2 node ( 32 rank X 1 th ) for job ID 18662938
+That took 0.019357 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.772402
+
+Blur radius 10-50, im1.ppm
+
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18663381
+That took 0.011073 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:01.638620
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18663396
+That took 0.014248 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.740324
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18663397
+That took 0.018807 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:00.772429
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18663399
+That took 0.022092 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:03.540846
+mpprun info: Starting impi run on 1 node ( 16 rank X 1 th ) for job ID 18663400
+That took 0.025590 seconds on id:0
+Writing output file
+mpprun info: Elapsed time (h:m:s):  0:00:03.557786
