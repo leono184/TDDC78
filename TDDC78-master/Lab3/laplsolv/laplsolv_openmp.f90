@@ -15,7 +15,7 @@ program laplsolv
 	double precision                    :: error,x
 	real                                :: t1,t0
 	integer                             :: i,j,k,tid,partitionssize,rest,offset
-	integer,dimension(nt)								:: partitions,startIndex,stopIndex
+	integer,dimension(nt)				:: partitions,startIndex,stopIndex
 	character(len=20)                   :: str
 	double precision,dimension(0:n-1,0:nt-1)   :: pBefore,pAfter
 
@@ -49,7 +49,6 @@ program laplsolv
 
 
 	! Solve the linear system of equations using the Jacobi method
-	! call cpu_time(t0)
 	t0 = omp_get_wtime()
 
 
