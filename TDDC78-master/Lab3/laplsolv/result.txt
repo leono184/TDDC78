@@ -1,0 +1,38 @@
+Threads: 1
+ 
+Time:   5.5468750     
+Number of Iterations:         557
+ 
+Temperature of element T(1,1)  =  0.49886012620009207     
+ 
+
+Threads:            2
+ 
+Time:   2.8515625     
+Number of Iterations:         557
+ 
+Temperature of element T(1,1)  =  0.49886012620009207     
+ 
+
+Threads:            4
+ 
+Time:   1.4765625     
+Number of Iterations:         557
+ 
+Temperature of element T(1,1)  =  0.49886012620009207     
+ 
+
+Threads:            8
+ 
+Time:  0.80468750     
+Number of Iterations:         557
+ 
+Temperature of element T(1,1)  =  0.49886012620009207     
+ 
+
+Threads:           16
+ 
+Time:  0.53906250    
+Number of Iterations:         557
+ 
+Temperature of element T(1,1)  =  0.49886012620009207     
