@@ -20,7 +20,7 @@ ptthres4 = [0.0275405 0.020871 0.0173004 0.0171642 0.0165063 0.0168779];
 n = [0 1 2 3 4 5];
 
 r = [10 20 30 40 50];
-
+%%
 % MPI BLUR
 % Threshold over im1 with 1,2,4,8,16,32 threads 
 figure(1)
@@ -34,13 +34,13 @@ bar(n,mpiblur4)
 title("Blur over im4, RADIUS=10")
 xlabel('2^x processes')
 ylabel('Execution time (s)')
-
+%%
 figure(3)
 bar(r,mpiblur1radius)
 title("Blur over im1 with RADIUS=10,20,30,40,50 and 16 processes ")
-xlabel('2^x processes')
+xlabel('Blur radius')
 ylabel('Execution time (s)')
-
+%%
 % MPI THRESHOLD
 figure(4)
 bar(n,mpithres1)
