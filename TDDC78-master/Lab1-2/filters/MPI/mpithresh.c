@@ -67,35 +67,24 @@ int main (int argc, char ** argv) {
 	int sendcount[p];
 	int *filtersums = (int *)malloc(p*sizeof(int)); 
 
-	if( me == 0 ){
-
-	  /* Take care of the arguments */
-
-		/* read file *//*
-		if(read_ppm (argv[1], &xsize, &ysize, &colmax, (char *) src) != 0){
-		    return -1;
-		}*/
-
-		// partition image 
-		int partion = (ysize/p)*xsize; // number of rows in each partition
-		int rest = ysize % p; // remaining number of rows
-		int i;
-		int offset =0;
-		
-		for(i = 0; i<p; i++){ 
-			displs[i]=offset;
-			if(i<rest)
-				sendcount[i] = partion+xsize;
-			else
-				sendcount[i] =partion;	
-			offset += sendcount[i];	
-		}
-	}
 	/* Cast variables to all processes */
 	MPI_Bcast(&xsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&ysize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(sendcount, p, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(displs, p, MPI_INT, 0, MPI_COMM_WORLD);
+
+	// partition image 
+	int partion = (ysize/p)*xsize; // number of rows in each partition
+	int rest = ysize % p; // remaining number of rows
+	int i;
+	int offset =0;
+	
+	for(i = 0; i<p; i++){ 
+		displs[i]=offset;
+		if(i<rest)
+			sendcount[i] = partion+xsize;
+		else
+			sendcount[i] =partion;	
+		offset += sendcount[i];	
+	}
 
  //   printf(" %d recieved xsixe: %d ,ysize: %d,sendcount: %d,displs: %d\n", me,xsize,ysize,sendcount[me], displs[me]);
 
@@ -104,26 +93,17 @@ int main (int argc, char ** argv) {
 
 	MPI_Scatterv(src,sendcount,displs,ptype,rbuff,sendcount[me],ptype,0,MPI_COMM_WORLD);
 
-	int sum = threshsum(xsize,sendcount[me]/xsize,rbuff);
+	long int sum = threshsum(xsize,sendcount[me]/xsize,rbuff);
 
 	/* Gather all partitions */
 	// check out MPI_Reduce, allreduce
+	long int new_thresh;
 
-	MPI_Gather(&sum,1,MPI_INT,filtersums,1,MPI_INT,0,MPI_COMM_WORLD);
+	MPI_Allreduce(&sum, &new_thresh, 1, MPI_LONG, MPI_SUM,MPI_COMM_WORLD);
 
-	if(me==0){
-		int i;
-		long int totalsum=0;
-		for(i=0;i<p;i++){
-			totalsum+=filtersums[i];
-		//	printf("Filtersum[%d]= %d \n",i ,filtersums[i]);
-		}
-		sum=totalsum/(xsize*ysize);
-	//	printf("sum= %d \n",sum);
-	}
-	MPI_Bcast(&sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	new_thresh=new_thresh/(xsize*ysize);
 
-	filter(xsize,sendcount[me]/xsize,rbuff,sum);
+	filter(xsize,sendcount[me]/xsize,rbuff,new_thresh);
 
 	MPI_Gatherv(rbuff,sendcount[me],ptype,src,sendcount,displs,ptype,0,MPI_COMM_WORLD);
 
@@ -134,10 +114,10 @@ int main (int argc, char ** argv) {
 
 		/* write result */
 		printf("Writing output file\n");
-		/*
+		
 		if(write_ppm (argv[2], xsize, ysize, (char *)src) != 0){
 		  return -1;
-		}*/
+		}
 	}
 
 	MPI_Finalize();
