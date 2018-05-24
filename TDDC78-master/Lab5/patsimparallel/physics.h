@@ -1,23 +1,14 @@
 #ifndef _physics_h
 #define _physics_h
 
-#include "coordinate.h"
+#include "definitions.h"
 
-#define STEP_SIZE 1.0 /* the step size use in the integration */
+int feuler(Particle&, float time_step);
 
-int feuler(pcord_t *a,
-	   float time_step) ;
+float wall_collide(Particle&, Wall&);
 
-float wall_collide(pcord_t *p,
-		   cord_t wall) ;
+float collide(Particle&, Particle&);
 
-
-float collide(pcord_t *p1,
-	      pcord_t *p2) ;
-
-void interact(pcord_t *p1,
-	      pcord_t *p2,
-	      float t) ;
-
+void interact(Particle&, Particle&, float t);
 
 #endif

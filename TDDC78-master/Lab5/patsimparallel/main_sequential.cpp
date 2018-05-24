@@ -1,114 +1,194 @@
-#include <stdlib.h>
-#include <time.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdbool.h>
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <random>
+#include <vector>
+#include <mpi.h>
 
-
-#include "coordinate.h"
 #include "definitions.h"
 #include "physics.h"
-
-
-//Feel free to change this program to facilitate parallelization.
 
 float rand1(){
 	return (float)( rand()/(float) RAND_MAX );
 }
 
-void init_collisions(bool *collisions, unsigned int max){
-	for(unsigned int i=0;i<max;++i)
-		collisions[i]=0;
-}
-
 
 int main(int argc, char** argv){
-
-
-	unsigned int time_stamp = 0, time_max;
+	unsigned time_max;
+    unsigned send_buf_size, recv_buf_size;
+    int rank,p;
+    MPI_Status mpi_status;
 	float pressure = 0;
-
-
-	// parse arguments
-	if(argc != 2) {
-		fprintf(stderr, "Usage: %s simulation_time\n", argv[0]);
-		fprintf(stderr, "For example: %s 10\n", argv[0]);
-		exit(1);
-	}
-
-	time_max = atoi(argv[1]);
-
-
-	/* Initialize */
-	// 1. set the walls
-	cord_t wall;
-	wall.y0 = wall.x0 = 0;
-	wall.x1 = BOX_HORIZ_SIZE;
-	wall.y1 = BOX_VERT_SIZE;
-
-
-	// 2. allocate particle bufer and initialize the particles
-	pcord_t *particles = (pcord_t*) malloc(INIT_NO_PARTICLES*sizeof(pcord_t));
-	bool *collisions=(bool *)malloc(INIT_NO_PARTICLES*sizeof(bool) );
+    float global_pressure = 0;
+	float sum = 0;
+	float globalsum = 0;
+    double s_time, e_time, time1, time2;
+    std::vector<Particle> particles;
+    std::vector<POD_Particle> send_up_buf;
+    std::vector<POD_Particle> send_down_buf;
+    std::vector<POD_Particle> recv_buf;
+    Wall wall;
 
 	srand( time(NULL) + 1234 );
 
-	float r, a;
-	for(int i=0; i<INIT_NO_PARTICLES; i++){
-		// initialize random position
-		particles[i].x = wall.x0 + rand1()*BOX_HORIZ_SIZE;
-		particles[i].y = wall.y0 + rand1()*BOX_VERT_SIZE;
+	// parse arguments
+	if(argc != 2) {
+		std::cerr << "Usage: "<< argv[0] << " simulation_time\n";
+		exit(1);
+	}
+	time_max = atoi(argv[1]);
 
-		// initialize random velocity
-		r = rand1()*MAX_INITIAL_VELOCITY;
-		a = rand1()*2*PI;
-		particles[i].vx = r*cos(a);
-		particles[i].vy = r*sin(a);
+    // Init MPI
+    MPI_Init(&argc,&argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); // Saves the rank in rank
+    MPI_Comm_size(MPI_COMM_WORLD, &p); // Saves the number of processes in 
+
+    MPI_Datatype MPI_Particle;
+
+    MPI_Type_contiguous(4, MPI_FLOAT, &MPI_Particle);
+    MPI_Type_commit(&MPI_Particle);
+
+
+    // Init wall
+    wall = Wall(0,BOX_HORIZ_SIZE,0,BOX_VERT_SIZE/p,rank == 0,rank == p -1);
+    // Init particles
+	for(int i = 0; i < INIT_NO_PARTICLES; i++){
+		float r = rand1()*MAX_INITIAL_VELOCITY;
+		float a = rand1()*2*PI;
+        particles.emplace_back(wall.x0 + rand1()*(wall.x1-wall.x0),
+                               wall.y0 + rand1()*(wall.y1-wall.y0),
+                               r*std::cos(a),r*std::sin(a));
 	}
 
-
-	unsigned int p, pp;
+    s_time = MPI::Wtime();
 
 	/* Main loop */
-	for (time_stamp=0; time_stamp<time_max; time_stamp++) { // for each time stamp
+	for (unsigned time_stamp = 0; time_stamp < time_max; time_stamp++) { // for each time stamp
+        // Reset collision for all particles
+        for (auto& p : particles) {
+            p.collided = false;
+        }
 
-		init_collisions(collisions, INIT_NO_PARTICLES);
+        // Reset buffers
+        send_up_buf.clear();
+        send_down_buf.clear();
+        recv_buf.clear();
 
-		for(p=0; p<INIT_NO_PARTICLES; p++) { // for all particles
-			if(collisions[p]) continue;
-
-			/* check for collisions */
-			for(pp=p+1; pp<INIT_NO_PARTICLES; pp++){
-				if(collisions[pp]) continue;
-				float t=collide(&particles[p], &particles[pp]);
-				if(t!=-1){ // collision
-					collisions[p]=collisions[pp]=1;
-					interact(&particles[p], &particles[pp], t);
+        // check for collisions with other particles
+		for (unsigned i=0; i<particles.size(); ++i) { // for all particles
+			if (particles[i].collided) continue;
+            // Check every particle after current particle i in vector
+			for (unsigned j=i+1; j<particles.size(); ++j) {
+				if (particles[j].collided) continue;
+				float t = collide(particles[i], particles[j]);
+				if (t!=-1) { // collision
+                    particles[i].collided = true;
+                    particles[j].collided = true;
+					interact(particles[i], particles[j], t);
 					break; // only check collision of two particles
 				}
 			}
-
 		}
-
 		// move particles that has not collided with another
-		for(p=0; p<INIT_NO_PARTICLES; p++)
-			if(!collisions[p]){
-				feuler(&particles[p], 1);
+        // add momentum to pressure if collision with wall
+        POD_Particle tmp;
+		for (auto p_it = particles.begin(); p_it != particles.end();) {
+			if (!p_it->collided) {
+				feuler(*p_it, 1);
+                float dp = wall_collide(*p_it, wall);
+                pressure += dp;
+                // If particle above this area send to neighbour above
+                if (p_it->y < wall.y0 && !wall.upsolid) {
+                    tmp.x = p_it->x;
+                    tmp.y = p_it->y;
+                    tmp.vx = p_it->vx;
+                    tmp.vy = p_it->vy;
+                    send_up_buf.push_back(tmp);
+                    p_it = particles.erase(p_it);
+                } else if (p_it->y > wall.y1 && !wall.downsolid) {
+                    tmp.x = p_it->x;
+                    tmp.y = p_it->y;
+                    tmp.vx = p_it->vx;
+                    tmp.vy = p_it->vy;
+                    send_down_buf.push_back(tmp);
+                    p_it = particles.erase(p_it);
+                } else {
+                    ++p_it;
+                }
+			} else {
+                ++p_it;
+            }
+        }
 
-				/* check for wall interaction and add the momentum */
-				pressure += wall_collide(&particles[p], wall);
-			}
+
+        // Send particles to process rank-1
+        send_buf_size = send_up_buf.size();
+		sum += send_buf_size;
+        if (rank != 0) {
+            MPI_Send(&send_buf_size,1,MPI_UNSIGNED,rank-1,1000, MPI_COMM_WORLD);
+            if (!send_up_buf.empty()) {
+                MPI_Send(&send_up_buf[0], send_up_buf.size(), MPI_Particle, rank-1, 1001, MPI_COMM_WORLD);
+            }
+        }
+
+        // Receive particles from rank+1
+        if (rank != p-1) {
+            MPI_Recv(&recv_buf_size,1,MPI_UNSIGNED,rank+1,1000, MPI_COMM_WORLD, &mpi_status);
+            if (recv_buf_size != 0) {
+                recv_buf.resize(recv_buf_size);
+                MPI_Recv(&recv_buf[0], recv_buf_size, MPI_Particle, rank+1, 1001, MPI_COMM_WORLD, &mpi_status);
+
+                for (unsigned i = 0; i < recv_buf_size; ++i)
+                    particles.push_back(Particle(recv_buf[i]));
+            }
+        }
 
 
+        // Send particles to process rank+1
+        send_buf_size = send_down_buf.size();
+		sum += send_buf_size;
+        if (rank != p-1) {
+            MPI_Send(&send_buf_size,1,MPI_UNSIGNED,rank+1,2000, MPI_COMM_WORLD);
+            if (!send_down_buf.empty()) {
+                MPI_Send(&send_down_buf[0], send_down_buf.size(), MPI_Particle, rank+1, 2001, MPI_COMM_WORLD);
+            }
+        }
+
+        // Receive particles from rank-1
+        if (rank != 0) {
+            MPI_Recv(&recv_buf_size,1,MPI_UNSIGNED,rank-1,2000, MPI_COMM_WORLD, &mpi_status);
+            if (recv_buf_size != 0) {
+                recv_buf.resize(recv_buf_size);
+                MPI_Recv(&recv_buf[0], recv_buf_size, MPI_Particle, rank-1, 2001, MPI_COMM_WORLD, &mpi_status);
+                for (unsigned i = 0; i < recv_buf_size; ++i)
+                    particles.push_back(Particle(recv_buf[i]));
+            }
+        }
+		std::cout << "Time step: "<< time_stamp << " Particles sent = " << sum << '\n';
+/*
+		if(rank==0){
+			MPI_Reduce(&sum, &globalsum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+			std::cout << "sent particles: " << globalsum << "\n";
+		}		
+*/
+		sum = 0;
 	}
+	
+	//MPI_Reduce(&sum, &globalsum, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&pressure, &global_pressure, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
 
+    e_time = MPI::Wtime();
 
-	printf("Average pressure = %f\n", pressure / (WALL_LENGTH*time_max));
+    if (rank == 0) {
+		std::cout << "Number of processes = " << p << '\n';
+		std::cout << "Box size = " << BOX_VERT_SIZE << '\n';
+        std::cout << "Average pressure = " << global_pressure / (WALL_LENGTH*time_max) << '\n';
+        std::cout << "Elapsed time = " << e_time -s_time << '\n';
+		
+    }
 
-	free(particles);
-	free(collisions);
+    MPI_Finalize();
 
 	return 0;
 
 }
-

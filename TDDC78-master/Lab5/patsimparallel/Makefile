@@ -1,7 +1,16 @@
 
+CXXFLAGS = -g -std=c++11
+CXX = mpicxx
+#CXX = mpic++
 
-sequential:main_sequential.c  physics.c
-	gcc -std=c99 -g -o $@ $^ -lrt -lm
+all: patsim patsimtest
 
-allclean:
-	-rm *.o sequential
+clean:
+	-$(RM) *.o patsim patsimtest
+
+patsim: physics.o main_sequential.o
+	$(CXX) -o $@ physics.o main_sequential.o $(CXXFLAGS)
+
+patsimtest: physics.o main_test.o
+	$(CXX) -o $@ physics.o main_test.o $(CXXFLAGS)
+
